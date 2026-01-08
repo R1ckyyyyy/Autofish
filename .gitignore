@@ -1,0 +1,20 @@
+# Environments
+.venv/
+.env
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# User-generated data
+debug_screenshots/
+screenshots/
+data/records.csv
+
+# Local configurations
+config/config.json
+
+# Python cache
+__pycache__/
+*.pyc

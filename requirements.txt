@@ -1,0 +1,6 @@
+PySide6
+PySide6-Fluent-Widgets
+opencv-python
+mss
+rapidocr-onnxruntime
+pynput
