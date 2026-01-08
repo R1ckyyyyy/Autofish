@@ -5,7 +5,6 @@
 # Build artifacts
 build/
 dist/
-*.spec
 
 # User-generated data
 debug_screenshots/

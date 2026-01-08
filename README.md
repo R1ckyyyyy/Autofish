@@ -72,7 +72,7 @@ Autofish 是一款基于图像识别的自动钓鱼工具，支持多分辨率�
 
 ---
 
-##致谢
+## 致谢
 
 本项目的视觉识别逻辑和部分图片资源参考了 [FADEDTUMI/PartyFish](https://github.com/FADEDTUMI/PartyFish) 项目，在此表示感谢。
 
