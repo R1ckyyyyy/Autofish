@@ -85,6 +85,12 @@ Autofish 的核心是利用 **OpenCV** 进行图像识别和模板匹配。它�
 
 ---
 
+## 🚀 未来计划 (Future Plans)
+
+- **[ ] 手动钓鱼记录模式**：实现一个独立的记录模块，允许用户在手动钓鱼时，程序也能自动识别并记录渔获信息，满足不同玩家的需求。
+
+---
+
 ## ❤️ 致谢与许可 (Credits & License)
 
 本项目的图像识别逻辑和部分资源参考了 [FADEDTUMI/PartyFish](https://github.com/FADEDTUMI/PartyFish) 项目，在此表示诚挚的感谢。
