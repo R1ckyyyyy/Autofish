@@ -50,3 +50,7 @@ graph TD
 *   **调试**:
     *   主要通过 GUI 的日志窗口观察运行状态。
     *   `screenshots/` 目录下可能会生成调试截图（如果代码中开启了调试保存）。
+
+## 致谢
+
+本项目的视觉识别逻辑和部分图片资源参考了 [FADEDTUMI/PartyFish](https://github.com/FADEDTUMI/PartyFish) 项目，在此表示感谢。
