@@ -1,9 +1,10 @@
-from PySide6.QtCore import Qt, QTimer, Slot, QTime, Signal
+from PySide6.QtCore import Qt, QTimer, Slot, QTime, Signal, QUrl, QSize
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, 
                              QTableWidgetItem, QHeaderView, QSplitter)
-from PySide6.QtGui import QColor, QBrush
+from PySide6.QtGui import QColor, QBrush, QIcon, QDesktopServices
 from qfluentwidgets import (CardWidget, TextEdit, StrongBodyLabel, TableWidget,
-                            CaptionLabel, TitleLabel, SubtitleLabel, InfoBadge, InfoLevel, ComboBox, qconfig, SwitchButton)
+                            CaptionLabel, TitleLabel, SubtitleLabel, InfoBadge, InfoLevel, ComboBox, qconfig, SwitchButton,
+                            HyperlinkButton, BodyLabel, ToolButton)
 from qfluentwidgets import FluentIcon as FIF
 from src.config import cfg
 from .components import QUALITY_COLORS
@@ -24,8 +25,8 @@ class HomeInterface(QWidget):
         self.last_fish_info = "暂无"
 
         self.v_box_layout = QVBoxLayout(self)
-        self.v_box_layout.setContentsMargins(30, 30, 30, 30)
-        self.v_box_layout.setSpacing(20)
+        self.v_box_layout.setContentsMargins(40, 40, 40, 20)
+        self.v_box_layout.setSpacing(24)
 
         # 1. Banner Area
         self.init_banner()
@@ -36,8 +37,8 @@ class HomeInterface(QWidget):
         # Left side widget
         self.left_widget = QWidget(self)
         self.left_layout = QVBoxLayout(self.left_widget)
-        self.left_layout.setContentsMargins(0, 0, 15, 0) # Add right margin
-        self.left_layout.setSpacing(20)
+        self.left_layout.setContentsMargins(0, 0, 20, 0) # Add right margin
+        self.left_layout.setSpacing(24)
 
         # 2. Real-time data panel
         self.init_dashboard()
@@ -56,21 +57,47 @@ class HomeInterface(QWidget):
         self.main_splitter.addWidget(self.log_container)
         self.main_splitter.setStretchFactor(0, 2) # Give more space to the left side initially (ratio 2:1)
         self.main_splitter.setStretchFactor(1, 1)
+        # Removed border style for splitter handle to remove the separator line
         self.main_splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: transparent;
                 width: 1px;
             }
-            QSplitter::handle:horizontal {
-                border-right: 1px solid #3A3A3A;
-            }
         """)
 
-        self.v_box_layout.addWidget(self.main_splitter)
+        self.v_box_layout.addWidget(self.main_splitter, 1) # Add stretch factor of 1
+        
+        # Footer
+        self.init_footer()
         
         # Timer
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_run_time)
+
+    def init_footer(self):
+        """Initialize footer with author info and license."""
+        self.footer_container = QWidget(self)
+        self.footer_layout = QHBoxLayout(self.footer_container)
+        self.footer_layout.setContentsMargins(0, 0, 0, 0)
+        self.footer_layout.setSpacing(10)
+        
+        # Author & Open Source Declaration
+        self.author_label = BodyLabel("Created by R1ckyyyyy | 本软件完全开源免费", self)
+        self.author_label.setTextColor(QColor(100, 100, 100), QColor(150, 150, 150))
+        
+        # Github Link
+        self.github_link = ToolButton(self)
+        self.github_link.setIcon(QIcon("resources/github.png"))
+        self.github_link.setIconSize(QSize(24, 24))
+        self.github_link.setCursor(Qt.PointingHandCursor)
+        self.github_link.setStyleSheet("border: none; background: transparent;")
+        self.github_link.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/R1ckyyyyy/Autofish")))
+        
+        self.footer_layout.addWidget(self.author_label)
+        self.footer_layout.addWidget(self.github_link)
+        self.footer_layout.addStretch(1)
+        
+        self.v_box_layout.addWidget(self.footer_container, 0, Qt.AlignBottom)
 
     def init_banner(self):
         """初始化 Banner"""
@@ -140,7 +167,7 @@ class HomeInterface(QWidget):
     def init_dashboard(self):
         """初始化数据看板"""
         self.dashboard_layout = QGridLayout()
-        self.dashboard_layout.setSpacing(20)
+        self.dashboard_layout.setSpacing(24)
 
         # 卡片 1 - 运行时间
         self.time_card = self.create_stat_card("运行时间", "00:00:00", FIF.HISTORY)
@@ -161,15 +188,15 @@ class HomeInterface(QWidget):
 
     def init_session_records(self):
         """Initializes the session records table area."""
-        self.session_records_container = QWidget(self)
+        self.session_records_container = CardWidget(self)
         layout = QVBoxLayout(self.session_records_container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setContentsMargins(20, 16, 20, 20)
+        layout.setSpacing(12)
         
-        header = StrongBodyLabel("本次记录", self)
+        header = StrongBodyLabel("本次记录", self.session_records_container)
         layout.addWidget(header)
         
-        self.session_table = TableWidget(self)
+        self.session_table = TableWidget(self.session_records_container)
         self.session_table.setColumnCount(3)
         self.session_table.setHorizontalHeaderLabels(["鱼名", "品质", "重量 (kg)"])
         self.session_table.verticalHeader().setVisible(False)
@@ -241,16 +268,16 @@ class HomeInterface(QWidget):
     def init_log_area(self):
         """初始化日志区域"""
         # 容器
-        self.log_container = QWidget(self)
+        self.log_container = CardWidget(self)
         self.log_layout = QVBoxLayout(self.log_container)
-        self.log_layout.setContentsMargins(15, 0, 0, 0) # Add left margin
-        self.log_layout.setSpacing(0)
+        self.log_layout.setContentsMargins(20, 16, 20, 20)
+        self.log_layout.setSpacing(12)
 
-        self.log_header_label = StrongBodyLabel("运行日志", self)
+        self.log_header_label = StrongBodyLabel("运行日志", self.log_container)
         self.log_layout.addWidget(self.log_header_label)
 
         # 日志输出框
-        self.log_output = TextEdit(self)
+        self.log_output = TextEdit(self.log_container)
         self.log_output.setReadOnly(True)
         self.log_output.setObjectName("LogOutput")
         self.log_layout.addWidget(self.log_output)

@@ -316,6 +316,13 @@ class FishingWorker(QThread):
         full_text = "".join([res[1] for res in result])
         self.log_updated.emit(f"识别到原始文本: {full_text}")
         
+        # 检测是否为新纪录
+        is_new_record = "新纪录" in full_text or "新记录" in full_text
+        if is_new_record:
+            self.log_updated.emit("检测到新纪录！")
+            # 移除关键词以免干扰后续解析
+            full_text = full_text.replace("新纪录", "").replace("新记录", "")
+        
         # 增强容错：只要文本中包含关键字即可，不需要精确匹配
         if "你钓到了" not in full_text:
             # 尝试模糊匹配或查找后续特征，如"千克"
@@ -327,6 +334,14 @@ class FishingWorker(QThread):
                 return False
 
         cleaned_text = full_text.replace(" ", "").replace("(", "").replace(")", "")
+
+        # 检测并清理新纪录关键词
+        # 已经在前一步做了初步检测，这里进行清理以防止干扰后续解析
+        new_record_keywords = ["新纪录", "新记录", "首次捕获", "首次"]
+        for kw in new_record_keywords:
+            if kw in cleaned_text:
+                is_new_record = True # 再次确认
+                cleaned_text = cleaned_text.replace(kw, "")
 
         try:
             # 移除固定的前缀 "你钓到了" (如果存在)
@@ -379,7 +394,7 @@ class FishingWorker(QThread):
 
         self.log_updated.emit(f"钓到鱼: {fish_name}, 重量: {weight}kg, 品质: {quality}")
 
-        catch_data = {'name': fish_name, 'weight': weight, 'quality': quality}
+        catch_data = {'name': fish_name, 'weight': weight, 'quality': quality, 'is_new_record': is_new_record}
         self.record_added.emit(catch_data)
 
         # Persistence: Write to CSV
@@ -396,8 +411,17 @@ class FishingWorker(QThread):
             
             with open(csv_file, 'a', encoding='utf-8') as f:
                 if not file_exists:
-                    f.write('Timestamp,Name,Quality,Weight\n')
-                f.write(f'{timestamp},{fish_name},{quality},{weight}\n')
+                    f.write('Timestamp,Name,Quality,Weight,IsNewRecord\n')
+                
+                # Check if existing CSV has the new column, if not, we can't easily append it without rewriting.
+                # However, Python's csv module is flexible.
+                # To be backward compatible and non-destructive:
+                # We will just append the new field. Old parsers (if any) might ignore it or fail.
+                # But since we control the reader in records_interface, we can handle it there.
+                
+                # 兼容性处理：如果文件已存在但没有新列，我们附加数据。读取时会处理缺失列。
+                is_new_record_str = 'Yes' if is_new_record else 'No'
+                f.write(f'{timestamp},{fish_name},{quality},{weight},{is_new_record_str}\n')
                 
         except Exception as e:
             self.log_updated.emit(f"写入记录文件失败: {e}")

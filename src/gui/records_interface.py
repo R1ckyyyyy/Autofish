@@ -38,7 +38,7 @@ class RecordsInterface(QWidget):
         top_controls_layout.addWidget(self.view_switcher)
         top_controls_layout.addStretch(1)
         self.filter_combo = ComboBox()
-        self.filter_combo.addItems(['全部品质', '标准', '非凡', '稀有', '史诗', '传说'])
+        self.filter_combo.addItems(['全部品质', '标准', '非凡', '稀有', '史诗', '传说', '首次捕获'])
         self.filter_combo.currentTextChanged.connect(self._filter_table)
         self.filter_combo.setFixedWidth(150)
         top_controls_layout.addWidget(QLabel("筛选品质:"))
@@ -150,12 +150,19 @@ class RecordsInterface(QWidget):
                 
                 for row in reader:
                     if len(row) >= 4:
-                        self.all_records.append({
+                        record = {
                             'timestamp': row[0],
                             'name': row[1],
                             'quality': row[2],
-                            'weight': row[3]
-                        })
+                            'weight': row[3],
+                            'is_new_record': False # Default value
+                        }
+                        
+                        # Handle the new 'is_new_record' column if present
+                        if len(row) >= 5:
+                            record['is_new_record'] = (row[4] == 'Yes')
+                        
+                        self.all_records.append(record)
         except Exception as e:
             print(f"Error loading records: {e}")
         
@@ -173,11 +180,12 @@ class RecordsInterface(QWidget):
                 record['timestamp'],
                 record['name'],
                 record['quality'],
-                record['weight']
+                record['weight'],
+                record.get('is_new_record', False)
             )
         self.table.setSortingEnabled(True)
 
-    def _add_row_to_table(self, timestamp, name, quality, weight):
+    def _add_row_to_table(self, timestamp, name, quality, weight, is_new_record=False):
         row_count = self.table.rowCount()
         self.table.insertRow(row_count)
         
@@ -200,6 +208,9 @@ class RecordsInterface(QWidget):
             brush = QBrush(color)
             for item in items:
                 item.setForeground(brush)
+        
+        # Store metadata (is_new_record) in the quality item (column 3)
+        items[3].setData(QtCoreQt.ItemDataRole.UserRole, is_new_record)
 
         for col_index, item in enumerate(items):
             self.table.setItem(row_count, col_index, item)
@@ -276,11 +287,21 @@ class RecordsInterface(QWidget):
             if quality in QUALITY_COLORS:
                 slice_color = QUALITY_COLORS[quality][1] if is_dark_theme else QUALITY_COLORS[quality][0]
                 
-                # The slice label is just the quality name, for the legend.
                 pie_slice = QPieSlice(quality, count)
                 pie_slice.setColor(slice_color)
                 
-                # Store data needed for tooltip
+                # Calculate ratio and set label (Percentage only)
+                ratio = count / total_fish_caught
+                pie_slice.setLabel(f"{ratio:.1%}")
+                pie_slice.setLabelVisible(True)
+                
+                # Handle label position based on slice size
+                if ratio < 0.1:
+                    pie_slice.setLabelPosition(QPieSlice.LabelPosition.LabelOutside)
+                else:
+                    pie_slice.setLabelPosition(QPieSlice.LabelPosition.LabelInsideHorizontal)
+                
+                # Store data needed for tooltip and legend
                 pie_slice.setProperty("count", count)
                 pie_slice.setProperty("total_count", total_fish_caught)
                 pie_slice.setProperty("quality_name", quality)
@@ -289,6 +310,25 @@ class RecordsInterface(QWidget):
                 pie_slice.hovered.connect(self._handle_slice_hover)
                 
                 self.pie_series.append(pie_slice)
+
+        # Customizing Legend Markers to show only Quality Name
+        # Note: Markers are generated after adding series to chart, 
+        # but here we are just updating the series content.
+        # We need to refresh the markers *after* the series has been processed by the chart.
+        # However, since the series is already in the chart (in __init__), updating it should trigger updates.
+        # We might need to process events or access markers directly.
+        
+        # Accessing markers requires the series to be added to the chart.
+        # We iterate through the markers and set their label to the quality name.
+        markers = self.chart_view.chart().legend().markers(self.pie_series)
+        for marker in markers:
+            # The marker's slice corresponds to one of the slices we just added
+            # BUT, the order might be preserved. 
+            # Safest way is to check the slice property.
+            slice_obj = marker.slice()
+            quality_name = slice_obj.property("quality_name")
+            if quality_name:
+                marker.setLabel(quality_name)
 
     def _handle_slice_hover(self, state):
         """Explode slice and show tooltip on hover."""
@@ -323,15 +363,28 @@ class RecordsInterface(QWidget):
         
         for row in range(self.table.rowCount()):
             item = self.table.item(row, 3) # Quality column
+            # We can retrieve the record object if needed, but here we just need to know if it's a new record
+            # Since we populate table row by row from display_records, we might need a better way to check "is_new_record"
+            # However, for simplicity, let's look at the underlying data.
+            # Wait, the table item doesn't store the full record dict directly.
+            # To handle "首次捕获" properly without adding a column, we need to map row index back to data or store data in item.
+            
+            # Let's use UserRole to store the is_new_record flag in the quality item
+            is_new_record = item.data(QtCoreQt.ItemDataRole.UserRole)
+            
             if not item: continue
             
+            should_show = False
             if filter_quality == '全部品质':
-                self.table.setRowHidden(row, False)
+                should_show = True
+            elif filter_quality == '首次捕获':
+                if is_new_record:
+                    should_show = True
             else:
                 if filter_quality in item.text():
-                    self.table.setRowHidden(row, False)
-                else:
-                    self.table.setRowHidden(row, True)
+                    should_show = True
+            
+            self.table.setRowHidden(row, not should_show)
 
     def add_record(self, record: dict):
         """

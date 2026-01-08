@@ -38,7 +38,7 @@ class MainWindow(FluentWindow):
         self.setObjectName("MainWindow")
         self.setWindowTitle("AutoFish")
         self.setWindowIcon(FluentIcon.GAME.icon())
-        self.resize(800, 600)
+        self.resize(1100, 750)
 
         print("Instantiating interfaces...")
         self.home_interface = HomeInterface(self)
