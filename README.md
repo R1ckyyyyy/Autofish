@@ -1,7 +1,7 @@
 # 🎣 Autofish - 猛兽派对自动钓鱼助手
 
-[![Release](https://img.shields.io/github/v/release/R1ckyH/Autofish?style=for-the-badge)](https://github.com/R1ckyH/Autofish/releases/latest)
-[![License](https://img.shields.io/github/license/R1ckyH/Autofish?style=for-the-badge)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/R1ckyyyyy/Autofish?style=for-the-badge)](https://github.com/R1ckyyyyy/Autofish/releases/latest)
+[![License](https://img.shields.io/github/license/R1ckyyyyy/Autofish?style=for-the-badge)](LICENSE)
 [![Game](https://img.shields.io/badge/Game-猛兽派对%20Party%20Animals-blue?style=for-the-badge)](https://www.partyanimals.com/)
 
 **🎮 专为《猛兽派对 (Party Animals)》钓鱼玩法设计的自动化辅助工具**
@@ -31,7 +31,7 @@ Autofish 是一款基于图像识别的自动钓鱼工具，拥有自动化操�
 
 ## 🚀 快速开始 (Quick Start)
 
-1.  **下载**：前往 [Releases](https://github.com/R1ckyH/Autofish/releases/latest) 页面，下载最新的 `Autofish_vX.X.X.zip` 压缩包。
+1.  **下载**：前往 [Releases](https://github.com/R1ckyyyyy/Autofish/releases/latest) 页面，下载最新的 `Autofish_vX.X.X.zip` 压缩包。
 2.  **解压**：将压缩包解压到您选择的任意目录。
 3.  **运行**：双击 `autofish.exe` 启动程序。
 
