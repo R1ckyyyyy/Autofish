@@ -247,8 +247,8 @@ class Config(metaclass=SingletonMeta):
         if not config_path.exists():
             # If config file doesn't exist, create it with default values
             self.presets = self._get_default_presets()
-            self.global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Dark"}
-            self.qfluent_settings = {"ThemeMode": "Dark"}
+            self.global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Light"}
+            self.qfluent_settings = {"ThemeMode": "Light"}
             self.save()
             return
 
@@ -258,8 +258,8 @@ class Config(metaclass=SingletonMeta):
             except json.JSONDecodeError:
                 # Handle corrupted JSON file
                 self.presets = self._get_default_presets()
-                self.global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Dark"}
-                self.qfluent_settings = {"ThemeMode": "Dark"}
+                self.global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Light"}
+                self.qfluent_settings = {"ThemeMode": "Light"}
                 self.save()
                 return
 
@@ -267,12 +267,12 @@ class Config(metaclass=SingletonMeta):
         self.presets = config_data.get("presets", self._get_default_presets())
         
         # Load global settings with defaults for missing keys
-        default_global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Dark"}
+        default_global_settings = {"hotkey": "F2", "debug_hotkey": "F10", "enable_jiashi": True, "jitter_range": 0, "theme": "Light"}
         loaded_global_settings = config_data.get("global_settings", {})
         default_global_settings.update(loaded_global_settings)
         self.global_settings = default_global_settings
         
-        self.qfluent_settings = config_data.get("QFluentWidgets", {"ThemeMode": "Dark"})
+        self.qfluent_settings = config_data.get("QFluentWidgets", {"ThemeMode": "Light"})
     
     def save(self):
         """
