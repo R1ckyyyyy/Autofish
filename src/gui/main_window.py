@@ -125,20 +125,8 @@ class MainWindow(FluentWindow):
         """Taking debug screenshot and opening it"""
         print("Taking debug screenshot via hotkey...")
         try:
-            # Dynamically import the generation function to avoid circular dependencies
-            # and to keep GUI code clean from direct tool logic.
-            import sys
-            import os
-            
-            # Since this file is in src/gui, we go up two levels for the root.
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-            tools_path = os.path.join(project_root, 'tools')
-            
-            if tools_path not in sys.path:
-                sys.path.append(tools_path)
-            
-            # Now we can import from the tools directory
-            from debug_overlay import generate_debug_screenshot
+            # Import from src.debug_overlay
+            from src.debug_overlay import generate_debug_screenshot
             
             filepath = generate_debug_screenshot(show_image=True)
             self.append_log(f"调试截图已保存: {filepath}")

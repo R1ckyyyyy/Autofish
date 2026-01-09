@@ -4,9 +4,6 @@ import cv2
 from datetime import datetime
 from pathlib import Path
 
-# Add the project root to the python path so we can import src
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from src.vision import vision
 from src.config import cfg
 
