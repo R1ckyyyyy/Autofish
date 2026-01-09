@@ -46,7 +46,6 @@ class Config(metaclass=SingletonMeta):
         # Predefined regions based on 2560x1440
         self.REGIONS = {
             "cast_rod":     {"coords": (1092, 1323, 25, 32), "anchor": "bottom_center"},
-            "cast_rod_ice": {"coords": (1203, 1323, 25, 32), "anchor": "bottom_center"},
             "wait_bite":    {"coords": (980, 1323, 25, 32), "anchor": "bottom_center"},
             "shangyu":      {"coords": (1146, 1316, 17, 21), "anchor": "bottom_center"},
             "reel_in_star": {"coords": (1172, 165, 34, 34), "anchor": "top_center"},

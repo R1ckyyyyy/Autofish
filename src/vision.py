@@ -251,7 +251,6 @@ class Vision:
         
         label_map = {
             'cast_rod': '抛竿检测',
-            'cast_rod_ice': '冰钓抛竿',
             'wait_bite': '咬钩等待',
             'reel_in': '收杆检测',
             'bait_count': '鱼饵计数',
