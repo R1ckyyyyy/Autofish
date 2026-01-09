@@ -343,6 +343,9 @@ class FishingWorker(QThread):
                 is_new_record = True # 再次确认
                 cleaned_text = cleaned_text.replace(kw, "")
 
+        # 额外清理冒号，OCR识别“首次捕获”后常伴随冒号
+        cleaned_text = cleaned_text.replace(":", "").replace("：", "")
+
         try:
             # 移除固定的前缀 "你钓到了" (如果存在)
             if "你钓到了" in cleaned_text:
