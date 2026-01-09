@@ -117,45 +117,52 @@ class FishingWorker(QThread):
         start_time = time.time()
         timeout = 10
         cast_rod_region = cfg.get_rect("cast_rod")
+        cast_rod_ice_region = cfg.get_rect("cast_rod_ice")
 
         while time.time() - start_time < timeout:
              if not self.running: return False
              while self.paused: self.msleep(100)
 
              for key in ['F1_grayscale', 'F2_grayscale']:
-                 # 在限定的“抛竿检测”区域内寻找图标
-                 if self.vision.find_template(key, region=cast_rod_region, threshold=0.8):
-                     self.log_updated.emit(f"检测到抛竿提示, 准备抛竿。")
-                     self.inputs.hold_mouse(cfg.cast_time)
-                     
-                     # -- 状态转换验证 --
-                     self.smart_sleep(1.0) # 等待UI响应
-                     
-                     verification_start_time = time.time()
-                     verification_timeout = 5 # 5秒验证超时
-                     wait_bite_region = cfg.get_rect("wait_bite")
-                     
-                     while time.time() - verification_start_time < verification_timeout:
-                         # 成功条件: 抛竿区图标消失 AND 等待区图标出现
-                         cast_icon_gone = not self.vision.find_template(key, region=cast_rod_region, threshold=0.8)
-                         wait_icon_appeared = self.vision.find_template(key, region=wait_bite_region, threshold=0.8)
+                  # 同时检测原有的区域和新的冰钓区域
+                  found_region = None
+                  if self.vision.find_template(key, region=cast_rod_region, threshold=0.8):
+                      found_region = cast_rod_region
+                  elif self.vision.find_template(key, region=cast_rod_ice_region, threshold=0.8):
+                      found_region = cast_rod_ice_region
 
-                         if cast_icon_gone and wait_icon_appeared:
-                             self.log_updated.emit("已抛竿, 进入等待咬钩状态。")
-                             return True # 抛竿成功
-                         
-                         self.msleep(200)
+                  if found_region:
+                      self.log_updated.emit(f"检测到抛竿提示, 准备抛竿。")
+                      self.inputs.hold_mouse(cfg.cast_time)
+                      
+                      # -- 状态转换验证 --
+                      self.smart_sleep(1.0) # 等待UI响应
+                      
+                      verification_start_time = time.time()
+                      verification_timeout = 5 # 5秒验证超时
+                      wait_bite_region = cfg.get_rect("wait_bite")
+                      
+                      while time.time() - verification_start_time < verification_timeout:
+                          # 成功条件: 抛竿区图标消失 AND 等待区图标出现
+                          cast_icon_gone = not self.vision.find_template(key, region=found_region, threshold=0.8)
+                          wait_icon_appeared = self.vision.find_template(key, region=wait_bite_region, threshold=0.8)
 
-                     # 如果超时，说明抛竿失败
-                     bait_amount = self.vision.get_bait_amount()
-                     if bait_amount == 0:
-                         self.log_updated.emit("错误：抛竿后状态未改变，且鱼饵数量为0。")
-                         self.pause(reason="没有鱼饵了")
-                     else:
-                         self.log_updated.emit("错误：抛竿后状态未改变，可能鱼桶已满。")
-                         self.pause(reason="鱼桶可能已满")
-                     return False
-                     # -- 验证结束 --
+                          if cast_icon_gone and wait_icon_appeared:
+                              self.log_updated.emit("已抛竿, 进入等待咬钩状态。")
+                              return True # 抛竿成功
+                          
+                          self.msleep(200)
+
+                      # 如果超时，说明抛竿失败
+                      bait_amount = self.vision.get_bait_amount()
+                      if bait_amount == 0:
+                          self.log_updated.emit("错误：抛竿后状态未改变，且鱼饵数量为0。")
+                          self.pause(reason="没有鱼饵了")
+                      else:
+                          self.log_updated.emit("错误：抛竿后状态未改变，可能鱼桶已满。")
+                          self.pause(reason="鱼桶可能已满")
+                      return False
+                      # -- 验证结束 --
 
              self.msleep(200)
 
@@ -252,8 +259,10 @@ class FishingWorker(QThread):
             # --- START: “鱼跑了”检测 ---
             # 在放线间隙，检查是否意外回到了抛竿状态
             cast_rod_region = cfg.get_rect("cast_rod")
+            cast_rod_ice_region = cfg.get_rect("cast_rod_ice")
             for key in ['F1_grayscale', 'F2_grayscale']:
-                if self.vision.find_template(key, region=cast_rod_region, threshold=0.8):
+                if self.vision.find_template(key, region=cast_rod_region, threshold=0.8) or \
+                   self.vision.find_template(key, region=cast_rod_ice_region, threshold=0.8):
                     self.log_updated.emit("在收线过程中检测到抛竿提示，判定为鱼跑了！")
                     self.status_updated.emit("鱼跑了!")
                     self._record_event("鱼跑了") # 记录事件
@@ -462,9 +471,9 @@ class FishingWorker(QThread):
             
             with open(csv_file, 'a', encoding='utf-8') as f:
                 if not file_exists:
-                    f.write('Timestamp,Name,Quality,Weight\n')
-                # 对于事件，我们只记录名称，其他字段留空
-                f.write(f'{timestamp},{event_type},,\n')
+                    f.write('Timestamp,Name,Quality,Weight,IsNewRecord\n')
+                # 对于事件，我们只记录名称，其他字段留空，IsNewRecord为No
+                f.write(f'{timestamp},{event_type},,,No\n')
                 
         except Exception as e:
             self.log_updated.emit(f"写入事件记录失败: {e}")
