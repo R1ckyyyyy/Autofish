@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=['src'],
     binaries=[],
-    datas=collect_data_files('rapidocr_onnxruntime') + [('tools', 'tools')],
+    datas=collect_data_files('rapidocr_onnxruntime') + [('src', 'src')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
